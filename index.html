@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf8">
+    <meta name="viewport" content="initial-scale=1">
+    <style>
+        body {
+            font-size: 16px;
+            font-family: Ubuntu;
+            background: hsl(215, 50%, 95%);
+        }
+        ol, ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1em;
+        }
+
+        hr {
+            width: 90%;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+
+        .num, .op {
+            display: inline-block;
+            font-size: 2rem;
+            /* We don't know the full height of the digits but we do know we want at least 0.25em */
+            /* of horizontal padding, so set that padding and use line-height to fill vertically */
+            box-sizing: border-box;
+            min-width: 1.75em;
+            padding: 0 0.25em;
+            line-height: 1.75;
+            text-align: center;
+            font-weight: bold;
+        }
+        .num {
+            color: white;
+            background-color: hsl(230, 100%, 40%);
+            background-image: linear-gradient(to bottom, hsl(230, 100%, 40%), hsl(240, 100%, 40%));
+            background-image: linear-gradient(to bottom, hsl(205, 100%, 40%), hsl(215, 100%, 40%));
+        }
+        .num.intermed {
+            background-color: hsl(30, 100%, 40%);
+            background-image: linear-gradient(to bottom, hsl(40, 100%, 40%), hsl(30, 100%, 40%));
+        }
+        .num.used {
+            background: #444;
+            color: #ccc;
+        }
+        .num.intermed.used {
+            background: #666;
+        }
+        .num.target {
+            background-color: hsl(205, 100%, 40%);
+            background-image: linear-gradient(to bottom, hsl(205, 100%, 40%), hsl(215, 100%, 40%));
+            background-image: linear-gradient(to bottom, hsl(180, 100%, 30%), hsl(185, 100%, 30%));
+        }
+
+        #target .num {
+            font-size: 2.5rem;
+            line-height: 1.5;
+            padding: 0 0.5em;
+        }
+
+        ul.numbers {
+            display: grid;
+            grid: auto-flow / repeat(6, 1fr);
+            gap: 1em;
+            display: flex;
+        }
+
+        ol.eqn {
+            display: flex;
+        }
+        ol.eqn li {
+            margin: 0.25em 0;
+        }
+        ol.eqn li.op {
+            font-size: 2rem;
+            padding: 0.25em;
+            line-height: 1;
+        }
+
+        #inputs {
+            display: grid;
+            grid: auto-flow / 1fr 1fr;  /* FIXME */
+            row-gap: 0.5em;
+        }
+        #inputs > div {
+            display: flex;
+        }
+        #inputs > .-exp {
+            justify-content: end;
+            grid-column: 1;
+        }
+        #inputs > .-eq {
+            grid-column: 2;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <header>
+            <h1>Digitle</h1>
+        </header>
+        <hr>
+        <div id="target">TARGET: <span class="num target">295</span></div>
+        <ul class="numbers" id="given">
+            <li class="num used">25</li>
+            <li class="num used">9</li>
+            <li class="num">3</li>
+            <li class="num used">1</li>
+            <li class="num">7</li>
+            <li class="num used">4</li>
+        </ul>
+        <ul class="numbers" id="intermediate">
+            <li class="num intermed used">12</li>
+            <li class="num intermed used">300</li>
+            <li class="num intermed used">5</li>
+        </ul>
+        <hr>
+        <ol id="inputs">
+            <div class="-exp">
+                <span class="num">9</span>
+                <span class="op">+</span>
+                <span class="num">3</span>
+            </div>
+            <div class="-eq">
+                <span class="op">=</span>
+                <span class="num intermed used">12</span>
+            </div>
+
+            <div class="-exp">
+                <span class="num">25</span>
+                <span class="op">×</span>
+                <span class="num intermed">12</span>
+            </div>
+            <div class="-eq">
+                <span class="op">=</span>
+                <span class="num intermed used">300</span>
+            </div>
+
+            <div class="-exp">
+                <span class="num">1</span>
+                <span class="op">+</span>
+                <span class="num">4</span>
+            </div>
+            <div class="-eq">
+                <span class="op">=</span>
+                <span class="num intermed used">5</span>
+            </div>
+
+            <div class="-exp">
+                <span class="num intermed">300</span>
+                <span class="op">−</span>
+                <span class="num intermed">5</span>
+            </div>
+            <div class="-eq">
+                <span class="op">=</span>
+                <span class="num target">295</span>
+            </div>
+        </ol>
+        <!--
+        <ol id="inputs">
+            <li>
+                <ol class="eqn">
+                    <li class="num">9</li>
+                    <li class="op">+</li>
+                    <li class="num">3</li>
+                    <li class="op">=</li>
+                    <li class="num intermed used">12</li>
+                </ol>
+            </li>
+            <li>
+                <ol class="eqn">
+                    <li class="num">25</li>
+                    <li class="op">×</li>
+                    <li class="num intermed">12</li>
+                    <li class="op">=</li>
+                    <li class="num intermed used">300</li>
+                </ol>
+            </li>
+            <li>
+                <ol class="eqn">
+                    <li class="num">1</li>
+                    <li class="op">+</li>
+                    <li class="num">4</li>
+                    <li class="op">=</li>
+                    <li class="num intermed used">5</li>
+                </ol>
+            </li>
+            <li>
+                <ol class="eqn">
+                    <li class="num intermed">300</li>
+                    <li class="op">−</li>
+                    <li class="num intermed">5</li>
+                    <li class="op">=</li>
+                    <li class="num target">295</li>
+                </ol>
+            </li>
+        </ol>
+        -->
+        <div id="win">Congratulations!</div>
+    </main>
+</body>
+</html>
