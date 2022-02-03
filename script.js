@@ -114,6 +114,8 @@ export class Game {
         this.numbers = [];
         this.numbers.push(...this.rng.sample(BIG_NUMBERS, big));
         this.numbers.push(...this.rng.sample(SMALL_NUMBERS, 6 - big));
+
+        this.used = [false, false, false, false, false, false];
     }
 }
 
@@ -216,8 +218,14 @@ class Expression {
     commit_number() {
         let {value, element} = this.pending_part;
         element.classList.remove('-pending');
-        let i = this.game.numbers.indexOf(value);
-        if (i >= 0) {
+        let i = null;
+        for (let [j, n] of this.game.numbers.entries()) {
+            if (n === value && ! this.game.used[j]) {
+                i = j;
+                break;
+            }
+        }
+        if (i !== null) {
             if (i >= 6) {
                 element.classList.add('intermed');
             }
@@ -438,11 +446,11 @@ export class UI {
         if (result) {
             this.add_new_expression();
             this.game.numbers.push(result.value);
+            this.game.used.push(false);
             this.number_els.push(result.element);
 
             for (let index of result.used) {
-                // FIXME not sure anything actually stops you from reusing a number lol
-                //this.game.used[index] = true;
+                this.game.used[index] = true;
                 this.number_els[index].classList.add('used');
             }
         }
