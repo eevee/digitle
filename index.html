@@ -3,9 +3,10 @@
 <head>
     <meta charset="utf8">
     <meta name="viewport" content="initial-scale=1">
+    <title>digitle</title>
     <style>
         body {
-            font-size: 16px;
+            font-size: 20px;
             font-family: Ubuntu;
             background: hsl(215, 50%, 95%);
         }
@@ -13,6 +14,9 @@
             margin: 0;
             padding: 0;
             list-style: none;
+        }
+        button {
+            font-size: inherit;
         }
 
         main {
@@ -50,6 +54,10 @@
             background-color: hsl(30, 100%, 40%);
             background-image: linear-gradient(to bottom, hsl(40, 100%, 40%), hsl(30, 100%, 40%));
         }
+        .num.-error {
+            background-color: hsl(0, 100%, 40%);
+            background-image: linear-gradient(to bottom, hsl(350, 100%, 40%), hsl(0, 100%, 40%));
+        }
         .num.used {
             background: #444;
             color: #ccc;
@@ -61,6 +69,12 @@
             background-color: hsl(205, 100%, 40%);
             background-image: linear-gradient(to bottom, hsl(205, 100%, 40%), hsl(215, 100%, 40%));
             background-image: linear-gradient(to bottom, hsl(180, 100%, 30%), hsl(185, 100%, 30%));
+        }
+        .num.-pending {
+            color: black;
+            background: none;
+            min-height: 1.75em;
+            box-shadow: inset 0 0 0 0.125em black;
         }
 
         #target .num {
@@ -111,22 +125,27 @@
             <h1>Digitle</h1>
         </header>
         <hr>
-        <div id="target">TARGET: <span class="num target">295</span></div>
+        <div id="target">TARGET: <span class="num target">???</span></div>
         <ul class="numbers" id="given">
-            <li class="num used">25</li>
-            <li class="num used">9</li>
+            <!--
+            <li class="num">25</li>
+            <li class="num">9</li>
             <li class="num">3</li>
-            <li class="num used">1</li>
+            <li class="num">1</li>
             <li class="num">7</li>
-            <li class="num used">4</li>
+            <li class="num">4</li>
+            -->
         </ul>
         <ul class="numbers" id="intermediate">
+            <!--
             <li class="num intermed used">12</li>
             <li class="num intermed used">300</li>
             <li class="num intermed used">5</li>
+            -->
         </ul>
         <hr>
         <ol id="inputs">
+            <!--
             <div class="-exp">
                 <span class="num">9</span>
                 <span class="op">+</span>
@@ -166,6 +185,7 @@
                 <span class="op">=</span>
                 <span class="num target">295</span>
             </div>
+            -->
         </ol>
         <!--
         <ol id="inputs">
@@ -207,7 +227,13 @@
             </li>
         </ol>
         -->
-        <div id="win">Congratulations!</div>
+        <div id="error"></div>
+        <div id="win">&nbsp;</div>
     </main>
+    <script type="module">
+        import { UI, Game } from './script.js';
+        let game = new Game();
+        new UI(game, document.querySelector('main'));
+    </script>
 </body>
 </html>
