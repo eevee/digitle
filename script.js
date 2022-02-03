@@ -347,7 +347,6 @@ export class UI {
 
         this.target_el = root.querySelector('#target .num');
         this.givens_el = root.querySelector('#given');
-        this.intermed_el = root.querySelector('#intermediate');
         this.expns_el = root.querySelector('#inputs');
         this.error_el = root.querySelector('#error');
 
@@ -366,45 +365,87 @@ export class UI {
 
         document.body.addEventListener('keydown', ev => {
             if ('0123456789'.indexOf(ev.key) >= 0) {
-                this.current_expn.append_digit(parseInt(ev.key, 10));
+                this.input_digit(parseInt(ev.key, 10));
             }
             else if (ev.key === '+' || ev.key === '-' || ev.key === '*' || ev.key === '/') {
                 // TODO would be nice to be able to do this and automatically bring down the result from the previous line
-                this.current_expn.add_operator(ev.key);
+                this.input_operator(ev.key);
             }
             else if (ev.key === ':') {
                 // Firefox nicety
-                this.current_expn.add_operator('/');
+                this.input_operator('/');
             }
             else if (ev.key === '=' || ev.key === 'Enter' || ev.key === 'Return') {
-                let result = this.current_expn.commit();
-                if (result) {
-                    this.add_new_expression();
-                    this.game.numbers.push(result.value);
-                    /*
-                    let el = mk('li.num.intermed', result.value);
-                    this.number_els.push(el);
-                    this.intermed_el.append(el);
-                    */
-                    this.number_els.push(result.element);
-
-                    for (let index of result.used) {
-                        //this.game.used[index] = true;
-                        this.number_els[index].classList.add('used');
-                    }
-                }
+                this.input_done();
             }
             else if (ev.key === 'Backspace') {
-                this.current_expn.backspace();
+                this.input_backspace();
+            }
+            else {
+                return;
             }
 
-            // Update error
-            this.error_el.textContent = this.current_expn.error ?? NBSP;
+            ev.preventDefault();
+        });
+
+        this.root.querySelector('#keyboard').addEventListener('click', ev => {
+            let button = ev.target;
+            if (button.tagName !== 'BUTTON')
+                return;
+
+            let type = button.getAttribute('data-type');
+            if (type === 'digit') {
+                this.input_digit(parseInt(button.getAttribute('data-digit'), 10));
+            }
+            else if (type === 'operator') {
+                this.input_operator(button.getAttribute('data-op'));
+            }
+            else if (type === 'erase') {
+                this.input_backspace();
+            }
+            else if (type === 'done') {
+                this.input_done();
+            }
         });
     }
 
     add_new_expression() {
         this.current_expn = new Expression(this.game, this.expns_el);
         this.expressions.push(this.current_expn);
+    }
+
+    update_error() {
+        this.error_el.textContent = this.current_expn.error ?? NBSP;
+    }
+
+    input_digit(digit) {
+        this.current_expn.append_digit(digit);
+        this.update_error();
+    }
+
+    input_operator(op) {
+        this.current_expn.add_operator(op);
+        this.update_error();
+    }
+
+    input_backspace() {
+        this.current_expn.backspace();
+        this.update_error();
+    }
+
+    input_done() {
+        let result = this.current_expn.commit();
+        if (result) {
+            this.add_new_expression();
+            this.game.numbers.push(result.value);
+            this.number_els.push(result.element);
+
+            for (let index of result.used) {
+                // FIXME not sure anything actually stops you from reusing a number lol
+                //this.game.used[index] = true;
+                this.number_els[index].classList.add('used');
+            }
+        }
+        this.update_error();
     }
 }
