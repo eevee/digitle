@@ -5,10 +5,15 @@
     <meta name="viewport" content="initial-scale=1">
     <title>digitle</title>
     <style>
-        body {
-            font-size: 20px;
+        html {
+            height: 100%;
+            font-size: 24px;
             font-family: Ubuntu, "DejaVu Sans", "Bitstream Vera Sans", Corbel, "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", sans-serif;
             background: hsl(215, 50%, 95%);
+        }
+        body {
+            height: 100%;
+            margin: 0;
         }
         ol, ul {
             margin: 0;
@@ -18,18 +23,40 @@
         button {
             font-size: inherit;
         }
+        h1 {
+            margin: 0;
+        }
 
         main {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 1em;
+            box-sizing: border-box;
+            height: 100%;
+            padding: 1em;
         }
-
-        hr {
-            width: 90%;
-            border: none;
-            border-top: 1px solid #ccc;
+        #board {
+            border: 1px solid #ccd;
+            border-width: 1px 0;
+        }
+        #board #target {
+            display: flex;
+            align-items: center;
+            margin: 1em 0;
+        }
+        #board #target h2 {
+            flex: 1;
+            margin: 0;
+            font-weight: normal;
+        }
+        #board #given {
+            margin: 1em 0;
+        }
+        #inputs-wrapper {
+            flex: 1;
+            overflow: auto;
+            align-self: stretch;
         }
 
         .num, .op {
@@ -104,11 +131,12 @@
 
         #inputs {
             display: grid;
-            grid: auto-flow / 1fr 1fr;  /* FIXME */
+            grid: auto-flow / auto auto;
             row-gap: 0.5em;
         }
         #inputs > div {
             display: flex;
+            align-items: start;
         }
         #inputs > .-exp {
             justify-content: end;
@@ -119,8 +147,9 @@
         }
 
         #keyboard {
+            font-size: 1.5em;
             display: grid;
-            grid: auto-flow 1.5em / repeat(4, 1.5em);
+            grid: auto-flow 1.5em / repeat(4, 2em);
             gap: 0.5em;
         }
         #keyboard button {
@@ -133,6 +162,15 @@
         #keyboard button:active {
             background: hsl(215, 20%, 70%);
         }
+
+        @media (max-width: 450px) {
+            html {
+                font-size: 16px;
+            }
+            .num, .op {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -140,14 +178,15 @@
         <header>
             <h1>digitle</h1>
         </header>
-        <hr>
-        <div id="target">TARGET: <span class="num target">???</span></div>
-        <ul class="numbers" id="given"> </ul>
-        <hr>
-        <ol id="inputs">
-        </ol>
+        <div id="board">
+            <div id="target"><h2>TARGET</h2><span class="num target">???</span></div>
+            <ul class="numbers" id="given"> </ul>
+        </div>
+        <div id="inputs-wrapper">
+            <ol id="inputs"></ol>
+        </div>
         <div id="error"></div>
-        <div id="win">&nbsp;</div>
+        <!-- <div id="win">&nbsp;</div> -->
         <div id="keyboard">
             <button data-type="digit" data-digit="1">1</button>
             <button data-type="digit" data-digit="2">2</button>
