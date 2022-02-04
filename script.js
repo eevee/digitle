@@ -215,7 +215,10 @@ class Expression {
         return parts[0];
     }
 
+    // FIXME currently legal to use the same number twice in one expression
     commit_number(index = null) {
+        this.uncommit_number();
+
         let {value, element} = this.pending_part;
         element.classList.remove('-pending');
 
@@ -238,13 +241,10 @@ class Expression {
             if (index >= 6) {
                 element.classList.add('intermed');
             }
-            // TODO flag the number as used?  now, or on =?
-            //element.classList.add('-given');
             this.pending_part.index = index;
             return true;
         }
         else {
-            // TODO show an error
             element.classList.add('-error');
             this.error = `No ${value} is available`;
             return false;
@@ -304,7 +304,7 @@ class Expression {
                 this.parts.pop().element.remove();  // number
                 this.parts.pop().element.remove();  // operator
                 this.pending_part = this.parts[this.parts.length - 1];
-                this.uncommit_number();
+                // Don't uncommit the number yet, for consistency with click entry
             }
         }
         else {
