@@ -146,9 +146,16 @@
         #inputs > .-exp {
             justify-content: end;
             grid-column: 1;
+            flex-wrap: wrap;
+            margin-top: -0.25em;  /* counteract the wrap spacing */
+        }
+        #inputs > .-exp .num,
+        #inputs > .-exp .op {
+            margin-top: 0.25em;
         }
         #inputs > .-eq {
             grid-column: 2;
+            align-items: end;  /* makes wrapping very nice */
         }
 
         #keyboard {

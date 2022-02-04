@@ -539,7 +539,6 @@ export class UI {
 // - store prefs
 // - remember streak, score?
 // - fragment trick
-// - make long expressions fit better
 // - restart button
 // - add instructions
 // - limit intermediate results to 5 digits
