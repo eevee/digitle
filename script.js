@@ -260,6 +260,10 @@ class Expression {
         this.error = null;
     }
 
+    is_empty() {
+        return this.parts.length === 1 && this.pending_part.value === 0;
+    }
+
     // User input API
 
     append_digit(digit) {
@@ -359,6 +363,10 @@ class Expression {
             used,
             element,
         };
+    }
+
+    uncommit() {
+        this.result_el.textContent = '';
     }
 }
 
@@ -468,7 +476,35 @@ export class UI {
     }
 
     input_backspace() {
-        this.current_expn.backspace();
+        if (this.current_expn.is_empty()) {
+            if (this.expressions.length > 1) {
+                // Delete the current one's DOM
+                this.current_expn.expn_el.remove();
+                this.current_expn.result_el.remove();
+
+                // Scrap it and make the previous one 'current'
+                this.expressions.pop();
+                this.current_expn = this.expressions[this.expressions.length - 1];
+
+                // Uncommit the previous one
+                this.current_expn.uncommit();
+                // Mark its numbers as no longer used
+                for (let [i, part] of this.current_expn.parts.entries()) {
+                    if (i % 2 === 0) {
+                        this.game.used[part.index] = false;
+                        this.number_els[part.index].classList.remove('used');
+                    }
+                }
+                // Remove everything
+                this.game.numbers.pop();
+                this.game.used.pop();
+                this.number_els.pop();
+            }
+        }
+        else {
+            this.current_expn.backspace();
+        }
+
         this.update_error();
     }
 
@@ -490,3 +526,20 @@ export class UI {
         this.update_error();
     }
 }
+
+// TODO:
+// - figure out a way to accept a partial answer
+//   - obviously if you hit the target, you win immediately (unless on "hard mode" where you must use every number)
+//   - if you run out of numbers and your last one is within X, accept that?  (eh but, you might want to backspace and try again)
+// - default to daily, but add random twiddles
+//   - hard mode: must use every number
+//   - big number pool: normal (25s), hard (12, 37, 62, 87), awkward (gross primes: 17, 43, 71, 89), chaos (anything from 11-100)
+//   - force count of big numbers
+//   - do it in other bases??
+// - store prefs
+// - remember streak, score?
+// - fragment trick
+// - make long expressions fit better
+// - restart button
+// - add instructions
+// - limit intermediate results to 5 digits
