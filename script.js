@@ -430,6 +430,7 @@ export class UI {
             ev.preventDefault();
         });
 
+        // Wire up the keyboard
         this.root.querySelector('#keyboard').addEventListener('click', ev => {
             let button = ev.target;
             if (button.tagName !== 'BUTTON')
@@ -448,6 +449,14 @@ export class UI {
             else if (type === 'done') {
                 this.input_done();
             }
+        });
+
+        this.root.querySelector('#keyboard #button-submit').addEventListener('click', () => {
+            // FIXME
+            alert("sorry im working on it");
+        });
+        this.root.querySelector('#keyboard #button-reset').addEventListener('click', () => {
+            this.reset();
         });
     }
 
@@ -525,6 +534,18 @@ export class UI {
         }
         this.update_error();
     }
+
+    reset() {
+        this.expns_el.textContent = '';
+        this.expressions = [];
+        this.add_new_expression();
+        this.game.numbers.splice(6);
+        this.game.used = [false, false, false, false, false, false];
+        for (let el of this.givens_el.querySelectorAll('.num.used')) {
+            el.classList.remove('used');
+        }
+        this.update_error();
+    }
 }
 
 // TODO:
@@ -539,5 +560,5 @@ export class UI {
 // - store prefs
 // - remember streak, score?
 // - fragment trick
-// - restart button
 // - limit intermediate results to 5 digits
+// - hide last expression and ignore input when only one number is left
