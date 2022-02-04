@@ -215,7 +215,6 @@ class Expression {
         return parts[0];
     }
 
-    // FIXME currently legal to use the same number twice in one expression
     commit_number(index = null) {
         this.uncommit_number();
 
@@ -230,7 +229,9 @@ class Expression {
         // Find the first matching number
         if (index === null) {
             for (let [j, n] of this.game.numbers.entries()) {
-                if (n === value && ! this.game.used[j]) {
+                if (n === value && ! this.game.used[j] &&
+                    ! this.parts.some(part => part.index === j))
+                {
                     index = j;
                     break;
                 }
