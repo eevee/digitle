@@ -142,7 +142,7 @@ class IntegerError extends RangeError {}
 class Expression {
     constructor(game, parent_el) {
         this.game = game;
-        this.expn_el = mk('div.-exp');
+        this.expn_el = mk('div.-expn');
         this.result_el = mk('div.-eq');
         parent_el.append(this.expn_el, this.result_el);
 
@@ -540,5 +540,4 @@ export class UI {
 // - remember streak, score?
 // - fragment trick
 // - restart button
-// - add instructions
 // - limit intermediate results to 5 digits

@@ -15,6 +15,9 @@
             height: 100%;
             margin: 0;
         }
+        main[hidden] {
+            display: none;
+        }
         ol, ul {
             margin: 0;
             padding: 0;
@@ -27,15 +30,37 @@
         main {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
             gap: 1em;
             box-sizing: border-box;
+            max-width: 30em;
             height: 100%;
+            margin: 0 auto;
             padding: 1em;
         }
-        h1 {
+        header {
+            display: flex;
+            align-items: center;
+            gap: 1em;
+        }
+        header h1 {
             font-size: 1.5em;
             margin: 0;
+            text-align: center;
+        }
+        header .-before,
+        header .-after {
+            flex: 1;
+        }
+        header .-after {
+            text-align: right;
+        }
+        header button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0.25em;
         }
         #board {
             border: 1px solid #ccd;
@@ -46,12 +71,15 @@
             text-align: center;
         }
         #board #given {
-            margin: 1em 0;
+            display: flex;
+            justify-content: center;
+            gap: 1em;
+            margin: 1em auto;
         }
+
         #inputs-wrapper {
             flex: 1;
             overflow: auto;
-            align-self: stretch;
             padding: 0.25em;
         }
 
@@ -115,45 +143,26 @@
             padding: 0 0.5em;
         }
 
-        ul.numbers {
-            display: grid;
-            grid: auto-flow / repeat(6, 1fr);
-            gap: 1em;
-            display: flex;
-        }
-
-        ol.eqn {
-            display: flex;
-        }
-        ol.eqn li {
-            margin: 0.25em 0;
-        }
-        ol.eqn li.op {
-            font-size: 2rem;
-            padding: 0.25em;
-            line-height: 1;
-        }
-
-        #inputs {
+        .expn-list {
             display: grid;
             grid: auto-flow / auto auto;
             row-gap: 0.5em;
         }
-        #inputs > div {
+        .expn-list > div {
             display: flex;
             align-items: start;
         }
-        #inputs > .-exp {
+        .expn-list > .-expn {
             justify-content: end;
             grid-column: 1;
             flex-wrap: wrap;
             margin-top: -0.25em;  /* counteract the wrap spacing */
         }
-        #inputs > .-exp .num,
-        #inputs > .-exp .op {
+        .expn-list > .-expn .num,
+        .expn-list > .-expn .op {
             margin-top: 0.25em;
         }
-        #inputs > .-eq {
+        .expn-list > .-eq {
             grid-column: 2;
             align-items: end;  /* makes wrapping very nice */
         }
@@ -163,6 +172,7 @@
             display: grid;
             grid: auto-flow 1.5em / repeat(4, 2em);
             gap: 0.5em;
+            margin: 0 auto;
         }
         #keyboard button[data-type=erase],
         #keyboard button[data-type=done] {
@@ -177,32 +187,77 @@
             background: hsl(215, 20%, 80%);
             background-image: linear-gradient(to bottom, transparent, hsl(215, 20%, 75%));
             box-shadow: inset 0 0 3px #fff4;
+            cursor: pointer;
+        }
+        #keyboard button:hover {
+            background: hsl(215, 20%, 85%);
         }
         #keyboard button:active {
             background: hsl(215, 20%, 70%);
         }
 
-        @media (max-width: 450px) {
+        /****************************************************************************/
+        /* about */
+
+        #main-about {
+            overflow: auto;
+            padding-bottom: 2em;
+        }
+        #main-about p {
+            font-size: 0.75rem;
+            margin: 0;  /* flexbox does the gap */
+            line-height: 1.5;
+        }
+        #main-about .num,
+        #main-about .op {
+            font-size: 1em;
+        }
+
+        .about-examples {
+            display: grid;
+            grid: auto-flow / auto auto;
+            align-items: center;
+            gap: 1em;
+            margin: 0 1em;
+        }
+
+        /****************************************************************************/
+
+        @media (max-width: 720px) {
             html {
                 font-size: 16px;
             }
             .num, .op {
                 font-size: 1.5rem;
             }
+
+            #main-about p {
+                font-size: 1em;
+            }
+            .about-examples {
+                grid-template-columns: auto;
+            }
+            #main-about .about-examples > p {
+                margin-bottom: 1em;
+            }
         }
     </style>
 </head>
 <body>
-    <main>
+    <main id="main-game">
         <header>
+            <div class="-before"></div>
             <h1>digitle</h1>
+            <div class="-after">
+                <button id="button-show-about">❓</button>
+            </div>
         </header>
         <div id="board">
             <div id="target"><span class="num target">???</span></div>
-            <ul class="numbers" id="given"> </ul>
+            <ul id="given"></ul>
         </div>
         <div id="inputs-wrapper">
-            <ol id="inputs"></ol>
+            <ol id="inputs" class="expn-list"></ol>
         </div>
         <div id="error"></div>
         <!-- <div id="win">&nbsp;</div> -->
@@ -219,10 +274,91 @@
             <button data-type="done">=</button>
         </div>
     </main>
+    <main hidden id="main-about">
+        <header>
+            <div class="-before"></div>
+            <h1>about</h1>
+            <div class="-after">
+                <button id="button-close-about">❌</button>
+            </div>
+        </header>
+        <p><strong>digitle</strong> is a number puzzle game, best known from the UK game show <a href="https://en.wikipedia.org/wiki/Countdown_(game_show)#Numbers_round">Countdown</a>.</p>
+        <p>Try to reach the target number by combining the six given numbers and the four basic arithmetic operations.  Click on available numbers to insert them into an expression, or type them on your keyboard.</p>
+        <div class="about-examples">
+            <ol class="expn-list">
+                <div class="-expn">
+                    <span class="num">1</span>
+                    <span class="op">+</span>
+                    <span class="num">2</span>
+                    <span class="op">×</span>
+                    <span class="num">3</span>
+                </div>
+                <div class="-eq">
+                    <span class="op">=</span>
+                    <span class="num intermed">7</span>
+                </div>
+            </ol>
+            <p>Order of operations matters.  You can now use this <span class="num intermed">7</span> again later.</p>
+            <ol class="expn-list">
+                <div class="-expn">
+                    <span class="num intermed">7</span>
+                    <span class="op">-</span>
+                    <span class="num">9</span>
+                    <span class="op">+</span>
+                    <span class="num">10</span>
+                </div>
+                <div class="-eq">
+                    <span class="op">=</span>
+                    <span class="num -error">8</span>
+                </div>
+            </ol>
+            <p>Negative numbers aren't allowed.  A hidden <span class="num -error">−2</span> is created here.</p>
+            <ol class="expn-list">
+                <div class="-expn">
+                    <span class="num intermed">7</span>
+                    <span class="op">+</span>
+                    <span class="num">10</span>
+                    <span class="op">-</span>
+                    <span class="num">9</span>
+                </div>
+                <div class="-eq">
+                    <span class="op">=</span>
+                    <span class="num intermed">8</span>
+                </div>
+            </ol>
+            <p>Rearranging can help.</p>
+            <ol class="expn-list">
+                <div class="-expn">
+                    <span class="num intermed">8</span>
+                    <span class="op">÷</span>
+                    <span class="num">3</span>
+                </div>
+                <div class="-eq">
+                    <span class="op">=</span>
+                    <span class="num -error">2⅔</span>
+                </div>
+            </ol>
+            <p>Fractions aren't allowed, either.</p>
+        </div>
+        <p>In rare cases, a puzzle may not be exactly solvable.  You can still earn half a point for getting within 5 of the target, or a quarter point for getting within 10.  Click the submit button when you're happy with your solution.</p>
+    </main>
     <script type="module">
         import { UI, Game } from './script.js';
         let game = new Game();
         new UI(game, document.querySelector('main'));
+
+        document.querySelector('#button-show-about').addEventListener('click', () => {
+            for (let el of document.querySelectorAll('main')) {
+                el.setAttribute('hidden', '');
+            }
+            document.querySelector('#main-about').removeAttribute('hidden');
+        });
+        document.querySelector('#button-close-about').addEventListener('click', () => {
+            for (let el of document.querySelectorAll('main')) {
+                el.setAttribute('hidden', '');
+            }
+            document.querySelector('#main-game').removeAttribute('hidden');
+        });
     </script>
 </body>
 </html>
