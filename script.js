@@ -215,23 +215,32 @@ class Expression {
         return parts[0];
     }
 
-    commit_number() {
+    commit_number(index = null) {
         let {value, element} = this.pending_part;
         element.classList.remove('-pending');
-        let i = null;
-        for (let [j, n] of this.game.numbers.entries()) {
-            if (n === value && ! this.game.used[j]) {
-                i = j;
-                break;
+
+        // Double-check that the index matches our number
+        if (index !== null && this.game.numbers[index] !== value) {
+            index = null;
+        }
+
+        // Find the first matching number
+        if (index === null) {
+            for (let [j, n] of this.game.numbers.entries()) {
+                if (n === value && ! this.game.used[j]) {
+                    index = j;
+                    break;
+                }
             }
         }
-        if (i !== null) {
-            if (i >= 6) {
+
+        if (index !== null) {
+            if (index >= 6) {
                 element.classList.add('intermed');
             }
             // TODO flag the number as used?  now, or on =?
             //element.classList.add('-given');
-            this.pending_part.index = i;
+            this.pending_part.index = index;
             return true;
         }
         else {
@@ -255,6 +264,11 @@ class Expression {
     append_digit(digit) {
         this.set_pending_number(this.pending_part.value * 10 + digit);
         this.uncommit_number();
+    }
+
+    set_number_by_index(index) {
+        this.set_pending_number(this.game.numbers[index]);
+        this.commit_number(index);
     }
 
     add_operator(op) {
@@ -361,8 +375,8 @@ export class UI {
         this.target_el.textContent = this.game.target;
 
         this.number_els = [];
-        for (let n of this.game.numbers) {
-            let el = mk('li.num', n);
+        for (let [i, n] of this.game.numbers.entries()) {
+            let el = mk('li.num', {'data-index': i}, n);
             this.number_els.push(el);
             this.givens_el.append(el);
         }
@@ -371,6 +385,17 @@ export class UI {
         this.current_expn = null;
         this.add_new_expression();
 
+        // Handle clicks on available numbers
+        this.root.addEventListener('click', ev => {
+            let num = ev.target.closest('.num[data-index]');
+            if (! num)
+                return;
+
+            this.input_number(parseInt(num.getAttribute('data-index')));
+        });
+
+        // Handle keypresses
+        // TODO make it clear when we have focus?
         document.body.addEventListener('keydown', ev => {
             if ('0123456789'.indexOf(ev.key) >= 0) {
                 this.input_digit(parseInt(ev.key, 10));
@@ -431,6 +456,11 @@ export class UI {
         this.update_error();
     }
 
+    input_number(index) {
+        this.current_expn.set_number_by_index(index);
+        this.update_error();
+    }
+
     input_operator(op) {
         this.current_expn.add_operator(op);
         this.update_error();
@@ -447,7 +477,9 @@ export class UI {
             this.add_new_expression();
             this.game.numbers.push(result.value);
             this.game.used.push(false);
+
             this.number_els.push(result.element);
+            result.element.setAttribute('data-index', this.game.numbers.length - 1);
 
             for (let index of result.used) {
                 this.game.used[index] = true;
