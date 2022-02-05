@@ -541,6 +541,7 @@ export class UI {
         this.add_new_expression();
         this.game.numbers.splice(6);
         this.game.used = [false, false, false, false, false, false];
+        this.number_els.splice(6);
         for (let el of this.givens_el.querySelectorAll('.num.used')) {
             el.classList.remove('used');
         }
