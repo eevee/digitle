@@ -115,6 +115,12 @@ export class Game {
         this.numbers.push(...this.rng.sample(BIG_NUMBERS, big));
         this.numbers.push(...this.rng.sample(SMALL_NUMBERS, 6 - big));
 
+        this.used = [];
+        this.reset();
+    }
+
+    reset() {
+        this.numbers.splice(6);
         this.used = [false, false, false, false, false, false];
     }
 }
@@ -372,8 +378,7 @@ class Expression {
 
 const NBSP = "\xa0";
 export class UI {
-    constructor(game, root) {
-        this.game = game;
+    constructor(root) {
         this.root = root;
 
         this.target_el = root.querySelector('#target .num');
@@ -381,18 +386,15 @@ export class UI {
         this.expns_el = root.querySelector('#inputs');
         this.error_el = root.querySelector('#error');
 
-        this.target_el.textContent = this.game.target;
-
         this.number_els = [];
-        for (let [i, n] of this.game.numbers.entries()) {
-            let el = mk('li.num', {'data-index': i}, n);
+        for (let i = 0; i < 6; i++) {
+            let el = mk('li.num', {'data-index': i}, "?");
             this.number_els.push(el);
             this.givens_el.append(el);
         }
 
         this.expressions = [];
         this.current_expn = null;
-        this.add_new_expression();
 
         // Handle clicks on available numbers
         this.root.addEventListener('click', ev => {
@@ -458,6 +460,80 @@ export class UI {
         this.root.querySelector('#keyboard #button-reset').addEventListener('click', () => {
             this.reset();
         });
+
+        this.mode_button = this.root.querySelector('#button-mode');
+        this.mode_button.addEventListener('click', () => {
+            if (this.daily_mode) {
+                this.switch_to_random_mode();
+            }
+            else {
+                this.switch_to_daily_mode();
+            }
+        });
+
+        // Set up tabs (which are outside the root oops)
+        this.root.querySelector('#button-show-about').addEventListener('click', () => {
+            this.switch_to_tab('main-about');
+        });
+        document.querySelector('#button-close-about').addEventListener('click', () => {
+            this.switch_to_tab('main-game');
+        });
+        this.root.querySelector('#button-settings').addEventListener('click', () => {
+            this.switch_to_tab('main-settings');
+        });
+        document.querySelector('#button-close-settings').addEventListener('click', () => {
+            this.switch_to_tab('main-game');
+        });
+
+        // Default to today's game
+        this.switch_to_daily_mode();
+    }
+
+    switch_to_tab(id) {
+        for (let el of document.querySelectorAll('main')) {
+            el.setAttribute('hidden', '');
+        }
+        document.querySelector('#' + id).removeAttribute('hidden');
+    }
+
+    switch_to_daily_mode() {
+        this.daily_mode = true;
+        this.mode_button.textContent = "📆";
+        this.mode_button.setAttribute('title', "Daily");
+
+        let date_seed = new Date().toISOString().substring(0, 10);  // yyyy-mm-dd
+        this.set_game(new Game(new RNG(date_seed)));
+    }
+
+    switch_to_random_mode() {
+        this.daily_mode = false;
+        this.mode_button.textContent = "🎲";
+        this.mode_button.setAttribute('title', "Random");
+
+        this.set_game(new Game);
+    }
+
+    set_game(game) {
+        this.game = game;
+        this.target_el.textContent = this.game.target;
+        for (let [i, n] of this.game.numbers.entries()) {
+            this.number_els[i].textContent = n;
+        }
+
+        this.reset();
+    }
+
+    reset() {
+        this.game.reset();
+
+        this.expns_el.textContent = '';
+        this.expressions = [];
+        this.add_new_expression();
+        this.number_els.splice(6);
+        for (let el of this.givens_el.querySelectorAll('.num.used')) {
+            el.classList.remove('used');
+        }
+        this.update_error();
     }
 
     add_new_expression() {
@@ -531,19 +607,6 @@ export class UI {
                 this.game.used[index] = true;
                 this.number_els[index].classList.add('used');
             }
-        }
-        this.update_error();
-    }
-
-    reset() {
-        this.expns_el.textContent = '';
-        this.expressions = [];
-        this.add_new_expression();
-        this.game.numbers.splice(6);
-        this.game.used = [false, false, false, false, false, false];
-        this.number_els.splice(6);
-        for (let el of this.givens_el.querySelectorAll('.num.used')) {
-            el.classList.remove('used');
         }
         this.update_error();
     }

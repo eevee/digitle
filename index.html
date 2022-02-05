@@ -23,8 +23,12 @@
             padding: 0;
             list-style: none;
         }
-        button {
+        button, select, input {
             font-size: inherit;
+        }
+        input[type=checkbox] {
+            width: 1em;
+            height: 1em;
         }
 
         main {
@@ -256,10 +260,13 @@
 <body>
     <main id="main-game">
         <header>
-            <div class="-before"></div>
+            <div class="-before">
+                <button id="button-mode" title="Daily">📆</button>
+            </div>
             <h1>digitle</h1>
             <div class="-after">
-                <button id="button-show-about">❓</button>
+                <button id="button-settings" title="Settings">⚙️</button>
+                <button id="button-show-about" title="About">❓</button>
             </div>
         </header>
         <div id="board">
@@ -355,23 +362,65 @@
         </div>
         <p>In rare cases, a puzzle may not be exactly solvable.  You can still earn half a point for getting within 5 of the target, or a quarter point for getting within 10.  Click the submit button when you're happy with your solution.</p>
     </main>
-    <script type="module">
-        import { UI, Game } from './script.js';
-        let game = new Game();
-        new UI(game, document.querySelector('main'));
+    <main hidden id="main-settings">
+        <header>
+            <div class="-before"></div>
+            <h1>settings</h1>
+            <div class="-after">
+                <button id="button-close-settings">❌</button>
+            </div>
+        </header>
+        <form class="settings">
+            <h2>Affects all puzzles:</h2>
+            <p>
+                <label>
+                    <input type="checkbox" name="hard-mode">
+                    Hard mode — must use all six numbers
+                <label>
+            </p>
 
-        document.querySelector('#button-show-about').addEventListener('click', () => {
-            for (let el of document.querySelectorAll('main')) {
-                el.setAttribute('hidden', '');
-            }
-            document.querySelector('#main-about').removeAttribute('hidden');
-        });
-        document.querySelector('#button-close-about').addEventListener('click', () => {
-            for (let el of document.querySelectorAll('main')) {
-                el.setAttribute('hidden', '');
-            }
-            document.querySelector('#main-game').removeAttribute('hidden');
-        });
+            <h2>Affects random puzzles only:</h2>
+            <p>
+                <label>
+                    Big number selection:
+                    <select name="big-number-pool">
+                        <option value="normal">Normal — 25, 50, 75, 100</option>
+                        <option value="tricky">Tricky — 12, 37, 62, 87</option>
+                        <option value="awkward">Awkward — 17, 43, 71, 89</option>
+                        <option value="chaos">Chaos — anything from 11 to 100</option>
+                    </select>
+                <label>
+            </p>
+            <p>
+                <label>
+                    Number selection:
+                    <select name="selection">
+                        <option value="auto">Automatic</option>
+                        <option value="random">Random</option>
+                        <option value="0">0 big, 6 small</option>
+                        <option value="1">1 big, 5 small</option>
+                        <option value="2">2 big, 4 small</option>
+                        <option value="3">3 big, 3 small</option>
+                        <option value="4">4 big, 2 small</option>
+                    </select>
+                <label>
+            </p>
+            <p>
+                <label>
+                    Base:
+                    <select name="base">
+                        <option value="8">Octal</option>
+                        <option value="10">Decimal</option>
+                        <option value="12">Duodecimal</option>
+                        <option value="16">Hexadecimal</option>
+                    </select>
+                <label>
+            </p>
+        </form>
+    </main>
+    <script type="module">
+        import { UI } from './script.js';
+        new UI(document.querySelector('main'));
     </script>
 </body>
 </html>
