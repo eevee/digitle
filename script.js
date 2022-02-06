@@ -449,6 +449,13 @@ export class UI {
             this.input_number(parseInt(num.getAttribute('data-index')));
         });
 
+        this.options = {
+            hard_mode: true,
+            pool: 'normal',
+            selection: 'auto',
+            base: 10,
+        };
+
         // Handle keypresses
         // TODO make it clear when we have focus?
         document.body.addEventListener('keydown', ev => {

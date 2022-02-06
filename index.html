@@ -291,6 +291,30 @@
         }
 
         /****************************************************************************/
+        /* settings */
+
+        form#settings {
+        }
+        form#settings h2 {
+            font-size: 1.25em;
+            font-weight: normal;
+            border-bottom: 1px solid #ccd;
+            color: #444;
+        }
+        form#settings p {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 0.5em;
+        }
+        form#settings p:hover {
+            background: hsl(215, 50%, 90%);
+        }
+        form#settings p > label {
+            flex: 1;
+        }
+
+        /****************************************************************************/
         /* about */
 
         #main-about {
@@ -359,6 +383,12 @@
             #main-about .about-examples > p {
                 margin-bottom: 1em;
             }
+        }
+
+
+
+        #button-settings {
+            display: none;
         }
     </style>
 </head>
@@ -475,61 +505,53 @@
             </ol>
             <p>Fractions aren't allowed, either.</p>
         </div>
-        <p>In rare cases, a puzzle may not be exactly solvable.  You can still earn half a point for getting within 5 of the target, or a quarter point for getting within 10.  Click the submit button when you're happy with your solution.</p>
+        <p>You earn ⭐ for getting within 10 of the target, ⭐⭐ for getting within 5, and ⭐⭐⭐ for reaching it exactly.  Note that in rare cases, a puzzle may not be exactly solvable.</p>
     </main>
     <main hidden id="main-settings">
         <header>
             <div class="-before"></div>
-            <h1>settings</h1>
+            <h1>options</h1>
             <div class="-after">
                 <button id="button-close-settings">❌</button>
             </div>
         </header>
-        <form class="settings">
+        <form id="settings">
             <h2>Affects all puzzles:</h2>
             <p>
-                <label>
-                    <input type="checkbox" name="hard-mode">
-                    Hard mode — must use all six numbers
-                <label>
+                <label for="label-setting-hard-mode">Hard mode<br>(must use all six numbers)</label>
+                <input type="checkbox" name="hard-mode" id="label-setting-hard-mode">
             </p>
 
             <h2>Affects random puzzles only:</h2>
             <p>
-                <label>
-                    Big number selection:
-                    <select name="big-number-pool">
-                        <option value="normal">Normal — 25, 50, 75, 100</option>
-                        <option value="tricky">Tricky — 12, 37, 62, 87</option>
-                        <option value="awkward">Awkward — 17, 43, 71, 89</option>
-                        <option value="chaos">Chaos — anything from 11 to 100</option>
-                    </select>
-                <label>
+                <label for="label-setting-pool">Big numbers</label>
+                <select name="pool" id="label-setting-pool">
+                    <option value="normal">Normal — 25, 50, 75, 100</option>
+                    <option value="tricky">Tricky — 12, 37, 62, 87</option>
+                    <option value="awkward">Awkward — 17, 43, 71, 89</option>
+                    <option value="chaos">Chaos — anything from 11 to 100</option>
+                </select>
             </p>
             <p>
-                <label>
-                    Number selection:
-                    <select name="selection">
-                        <option value="auto">Automatic</option>
-                        <option value="random">Random</option>
-                        <option value="0">0 big, 6 small</option>
-                        <option value="1">1 big, 5 small</option>
-                        <option value="2">2 big, 4 small</option>
-                        <option value="3">3 big, 3 small</option>
-                        <option value="4">4 big, 2 small</option>
-                    </select>
-                <label>
+                <label for="label-setting-selection">Number selection</label>
+                <select name="selection" id="label-setting-selection">
+                    <option value="auto">Automatic</option>
+                    <option value="random">Random</option>
+                    <option value="0">0 big, 6 small</option>
+                    <option value="1">1 big, 5 small</option>
+                    <option value="2">2 big, 4 small</option>
+                    <option value="3">3 big, 3 small</option>
+                    <option value="4">4 big, 2 small</option>
+                </select>
             </p>
             <p>
-                <label>
-                    Base:
-                    <select name="base">
-                        <option value="8">Octal</option>
-                        <option value="10">Decimal</option>
-                        <option value="12">Duodecimal</option>
-                        <option value="16">Hexadecimal</option>
-                    </select>
-                <label>
+                <label for="label-setting-base">Base</label>
+                <select name="base" id="label-setting-base">
+                    <option value="8">Octal</option>
+                    <option value="10">Decimal</option>
+                    <option value="12">Duodecimal</option>
+                    <option value="16">Hexadecimal</option>
+                </select>
             </p>
         </form>
     </main>
