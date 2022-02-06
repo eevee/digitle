@@ -122,6 +122,42 @@ export class Game {
     reset() {
         this.numbers.splice(6);
         this.used = [false, false, false, false, false, false];
+        this.win = null;
+    }
+
+    check_for_win() {
+        let closest = null;
+        let closest_off = null;
+        for (let [i, n] of this.numbers.entries()) {
+            if (this.used[i])
+                continue;
+
+            let off = Math.abs(n - this.target);
+            if (closest === null || off < closest_off) {
+                closest = i;
+                closest_off = off;
+            }
+        }
+
+        if (closest_off > 10) {
+            this.win = null;
+            return;
+        }
+
+        this.win = {
+            closest: this.numbers[closest],
+            index: closest,
+            off: closest_off,
+            stars: 1,
+        };
+        if (closest_off === 0) {
+            this.win.stars = 3;
+        }
+        else if (closest_off <= 5) {
+            this.win.stars = 2;
+        }
+
+        return this.win;
     }
 }
 
@@ -129,18 +165,22 @@ export class Game {
 const OPERATORS = {
     '+': {
         text: '+',
+        emoji: '➕',
         evaluate: (a, b) => a + b,
     },
     '-': {
         text: '−',
+        emoji: '➖',
         evaluate: (a, b) => a - b,
     },
     '*': {
         text: '×',
+        emoji: '✖️',
         evaluate: (a, b) => a * b,
     },
     '/': {
         text: '÷',
+        emoji: '➗',
         evaluate: (a, b) => a / b,
     },
 };
@@ -381,7 +421,7 @@ export class UI {
     constructor(root) {
         this.root = root;
 
-        this.target_el = root.querySelector('#target .num');
+        this.target_el = root.querySelector('#board .num.target');
         this.givens_el = root.querySelector('#given');
         this.expns_el = root.querySelector('#inputs');
         this.error_el = root.querySelector('#error');
@@ -453,11 +493,7 @@ export class UI {
             }
         });
 
-        this.root.querySelector('#keyboard #button-submit').addEventListener('click', () => {
-            // FIXME
-            alert("sorry im working on it");
-        });
-        this.root.querySelector('#keyboard #button-reset').addEventListener('click', () => {
+        this.root.querySelector('#button-reset').addEventListener('click', () => {
             this.reset();
         });
 
@@ -469,6 +505,12 @@ export class UI {
             else {
                 this.switch_to_daily_mode();
             }
+        });
+
+        this.root.querySelector('#button-copy-results').addEventListener('click', ev => {
+            this.copy_results().then(() => {
+                this.confirm_copy(ev);
+            });
         });
 
         // Set up tabs (which are outside the root oops)
@@ -502,6 +544,8 @@ export class UI {
         this.mode_button.setAttribute('title', "Daily");
 
         let date_seed = new Date().toISOString().substring(0, 10);  // yyyy-mm-dd
+        this.daily_date = date_seed;
+        this.daily_number = 1;
         this.set_game(new Game(new RNG(date_seed)));
     }
 
@@ -526,6 +570,7 @@ export class UI {
     reset() {
         this.game.reset();
 
+        this.root.classList.remove('won');
         this.expns_el.textContent = '';
         this.expressions = [];
         this.add_new_expression();
@@ -533,7 +578,7 @@ export class UI {
         for (let el of this.givens_el.querySelectorAll('.num.used')) {
             el.classList.remove('used');
         }
-        this.update_error();
+        this.update_ui();
     }
 
     add_new_expression() {
@@ -541,34 +586,65 @@ export class UI {
         this.expressions.push(this.current_expn);
     }
 
-    update_error() {
-        this.error_el.textContent = this.current_expn.error ?? NBSP;
+    update_ui() {
+        // Scroll the expression list to the bottom
+        this.expns_el.parentNode.scrollTo(0, this.expns_el.parentNode.scrollHeight);
+
+        // Update the error + win elements
+        if (this.current_expn && this.current_expn.error) {
+            this.error_el.textContent = this.current_expn.error;
+            this.root.classList.remove('won');
+        }
+        else {
+            // If all is well, check for a win
+            let win = this.game.check_for_win();
+            this.root.classList.toggle('won', !!win);
+            if (win) {
+                let element = this.root.querySelector('#win-message');
+                if (win.stars === 3) {
+                    element.textContent = `Bang on!  ⭐⭐⭐`;
+                }
+                else {
+                    element.textContent = `${win.off} away!  ` + "⭐".repeat(win.stars);
+                }
+            }
+        }
     }
 
     input_digit(digit) {
+        if (! this.current_expn)
+            return;
         this.current_expn.append_digit(digit);
-        this.update_error();
+        this.update_ui();
     }
 
     input_number(index) {
+        if (! this.current_expn)
+            return;
         this.current_expn.set_number_by_index(index);
-        this.update_error();
+        this.update_ui();
     }
 
     input_operator(op) {
+        if (! this.current_expn)
+            return;
         this.current_expn.add_operator(op);
-        this.update_error();
+        this.update_ui();
     }
 
     input_backspace() {
-        if (this.current_expn.is_empty()) {
-            if (this.expressions.length > 1) {
+        if (! this.current_expn || this.current_expn.is_empty()) {
+            if (this.expressions.length > 1 ||
+                (! this.current_expn && this.expressions.length >= 1))
+            {
                 // Delete the current one's DOM
-                this.current_expn.expn_el.remove();
-                this.current_expn.result_el.remove();
+                if (this.current_expn) {
+                    this.current_expn.expn_el.remove();
+                    this.current_expn.result_el.remove();
+                    this.expressions.pop();
+                }
 
                 // Scrap it and make the previous one 'current'
-                this.expressions.pop();
                 this.current_expn = this.expressions[this.expressions.length - 1];
 
                 // Uncommit the previous one
@@ -590,25 +666,104 @@ export class UI {
             this.current_expn.backspace();
         }
 
-        this.update_error();
+        this.update_ui();
     }
 
     input_done() {
+        if (! this.current_expn)
+            return;
+
         let result = this.current_expn.commit();
         if (result) {
-            this.add_new_expression();
             this.game.numbers.push(result.value);
             this.game.used.push(false);
 
             this.number_els.push(result.element);
             result.element.setAttribute('data-index', this.game.numbers.length - 1);
 
+            let off = Math.abs(result.value - this.game.target);
+            if (off === 0) {
+                result.element.classList.add('win3');
+            }
+            else if (off <= 5) {
+                result.element.classList.add('win2');
+            }
+            else if (off <= 10) {
+                result.element.classList.add('win1');
+            }
+
             for (let index of result.used) {
                 this.game.used[index] = true;
                 this.number_els[index].classList.add('used');
             }
+
+            // Add a new expression only if at least 2 unused numbers remain
+            if (this.game.used.filter(x => ! x).length >= 2) {
+                this.add_new_expression();
+            }
+            else {
+                this.current_expn = null;
+            }
         }
-        this.update_error();
+        this.update_ui();
+    }
+
+    copy_results() {
+        if (! this.game.win)
+            return;
+
+        let text = [];
+
+        if (this.daily_mode) {
+            text.push(`daily digitle ${this.daily_date}`);
+            // TODO this.daily_number = 1;
+        }
+        else {
+            // TODO
+            text.push(`random digitle`);
+        }
+        text.push("\n");
+
+        for (let expn of this.expressions) {
+            if (expn === this.current_expn)
+                // Still pending, ignore it
+                continue;
+
+            for (let [i, part] of expn.parts.entries()) {
+                if (i % 2 === 0) {
+                    if (part.index < 6) {
+                        text.push("🟦");
+                    }
+                    else {
+                        text.push("🟨");
+                    }
+                }
+                else {
+                    text.push(OPERATORS[part.value].emoji);
+                }
+            }
+            text.push("\n");
+        }
+
+        // TODO indicate all numbers used?  hm
+        text.push("⭐".repeat(this.game.win.stars));
+        text.push("  ");
+        if (this.game.win.off === 0) {
+            text.push("perfect!");
+        }
+        else {
+            text.push(`${this.game.win.off} away`);
+        }
+
+        return navigator.clipboard.writeText(text.join(""));
+    }
+
+    confirm_copy(ev) {
+        let clipboard = mk('div.clipboard-confirm', "📋");
+        clipboard.style.left = `${ev.clientX}px`;
+        clipboard.style.top = `${ev.clientY}px`;
+        document.body.append(clipboard);
+        setTimeout(() => clipboard.remove(), 1000);
     }
 }
 

@@ -26,6 +26,26 @@
         button, select, input {
             font-size: inherit;
         }
+        button {
+            --button-hue: 215;
+            --button-lightness: 90%;
+            padding: 0.25em 0.5em;
+            line-height: 1.5;
+            border-radius: 0.125em;
+            border: 1px solid #888;
+            text-align: center;
+            background: hsl(var(--button-hue), 20%, var(--button-lightness));
+            background-image: linear-gradient(to bottom, transparent, hsl(
+                var(--button-hue), 20%, calc(var(--button-lightness) * 0.9)));
+            box-shadow: inset 0 0 3px #fff4;
+            cursor: pointer;
+        }
+        button:hover {
+            background: hsl(var(--button-hue), 20%, calc(var(--button-lightness) * 1.05));
+        }
+        button:active {
+            background: hsl(var(--button-hue), 20%, calc(var(--button-lightness) * 0.9));
+        }
         input[type=checkbox] {
             width: 1em;
             height: 1em;
@@ -37,7 +57,7 @@
             align-items: stretch;
             gap: 1em;
             box-sizing: border-box;
-            max-width: 30em;
+            max-width: 40em;
             height: 100%;
             margin: 0 auto;
             padding: 1em;
@@ -66,25 +86,47 @@
             line-height: 1;
             padding: 0.25em;
         }
+
         #board {
+            display: grid;
+            grid:
+                "left   target  right"
+                "given  given   given"
+                / 1fr min-content 1fr
+            ;
+            align-items: center;
+            justify-content: center;
+            gap: 1em;
+            padding: 1em 0;
             border: 1px solid #ccd;
             border-width: 1px 0;
         }
-        #board #target {
-            margin: 1em auto;
+        #board > .-left {
+            grid-area: left;
+        }
+        #board .target {
+            grid-area: target;
+        }
+        #board > .-right {
+            grid-area: right;
+        }
+        #board > .-left,
+        #board > .-right {
             text-align: center;
+            color: #666;
         }
         #board #given {
+            grid-area: given;
             display: flex;
             justify-content: center;
             gap: 1em;
-            margin: 1em auto;
         }
 
         #inputs-wrapper {
             flex: 1;
             overflow: auto;
             padding: 0.25em;
+            padding-right: 1em;  /* leave space for stars */
         }
 
         .num, .op {
@@ -100,6 +142,7 @@
             font-weight: bold;
         }
         .num {
+            position: relative;
             color: white;
             background-color: hsl(230, 100%, 40%);
             background-image: linear-gradient(to bottom, hsl(230, 100%, 40%), hsl(240, 100%, 40%));
@@ -131,7 +174,7 @@
             color: black;
             background: none;
             min-height: 1.5em;
-            box-shadow: inset 0 0 0 0.125em black;
+            outline: 1px dashed black;
         }
         .num[data-index] {
             cursor: pointer;
@@ -141,10 +184,34 @@
             filter: brightness(120%);
         }
 
-        #target .num {
+        .num.target {
             font-size: 2.5rem;
-            line-height: 1.5;
+            line-height: 1.25;
             padding: 0 0.5em;
+        }
+
+        .num.win1::after,
+        .num.win2::after,
+        .num.win3::after {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            font-size: 0.33em;
+            top: 0;
+            bottom: 0;
+            left: 100%;
+            margin: 0.25em;
+            line-height: 1;
+            white-space: pre;
+        }
+        .num.win1::after {
+            content: "⭐";
+        }
+        .num.win2::after {
+            content: "⭐\0a⭐";
+        }
+        .num.win3::after {
+            content: "⭐\0a⭐\0a⭐";
         }
 
         .expn-list {
@@ -171,43 +238,54 @@
             align-items: end;  /* makes wrapping very nice */
         }
 
+        #error {
+            color: hsl(10, 75%, 25%);
+            text-align: center;
+        }
+
         #keyboard {
             font-size: 1.5em;
             display: grid;
-            grid: auto-flow 1.5em / 3fr repeat(4, 2fr) 3fr;
+            grid: auto-flow 1.5em / 2fr 2fr 2fr 2fr;
             gap: 0.25em;
-            --button-hue: 215;
-        }
-        #keyboard button#button-reset {
-            grid-row: span 2;
-            grid-column: 1;
-            --button-hue: 275;
-        }
-        #keyboard button#button-submit {
-            grid-row: span 2;
-            grid-column: 6;
-            --button-hue: 155;
-        }
-        #keyboard button[data-type=erase],
-        #keyboard button[data-type=done] {
-            grid-column: span 2;
         }
         #keyboard button {
-            border: none;
-            text-align: center;
-            line-height: 1.5;
-            border-radius: 0.125em;
-            border: 1px solid #888;
-            background: hsl(var(--button-hue), 20%, 80%);
-            background-image: linear-gradient(to bottom, transparent, hsl(var(--button-hue), 20%, 75%));
-            box-shadow: inset 0 0 3px #fff4;
-            cursor: pointer;
+            --button-lightness: 75%;
+            line-height: 1;
         }
-        #keyboard button:hover {
-            background: hsl(var(--button-hue), 20%, 85%);
+        #keyboard button[data-type=erase] {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+            --button-hue: 275;
         }
-        #keyboard button:active {
-            background: hsl(var(--button-hue), 20%, 70%);
+        #keyboard button[data-type=done] {
+            grid-column: 4;
+            grid-row: 1 / span 2;
+            --button-hue: 155;
+        }
+
+        #win {
+            display: none;  /* flex */
+            align-items: center;
+        }
+        #win p {
+            flex: 1;
+            margin: 0;
+        }
+        #main-game.won #error {
+            display: none;
+        }
+        #main-game.won #win {
+            display: flex;
+        }
+
+        #puzzle-desc {
+            display: flex;
+            color: #666;
+        }
+        #puzzle-desc p {
+            flex: 1;
+            margin: 0;
         }
 
         /****************************************************************************/
@@ -236,6 +314,31 @@
         }
 
         /****************************************************************************/
+
+        .clipboard-confirm {
+            position: absolute;
+            font-size: 2em;
+            margin-left: -0.5em;
+            margin-top: -0.75em;
+            pointer-events: none;
+
+            transform-origin: 50%;
+            animation: clipboard 0.5s ease-out forwards;
+        }
+        @keyframes clipboard {
+            0% {
+                transform: translateY(0) scale(1);
+            }
+            25% {
+                transform: translateY(-50%) scale(1);
+            }
+            50% {
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                transform: translateY(0) scale(0) rotate(1turn);
+            }
+        }
 
         @media (max-width: 720px) {
             html {
@@ -270,28 +373,41 @@
             </div>
         </header>
         <div id="board">
-            <div id="target"><span class="num target">???</span></div>
+            <div class="-left">
+                <button id="button-reroll">new</button>
+                <button id="button-reset">reset</button>
+            </div>
+            <div class="num target">???</div>
+            <div class="-right">normal rules</div>
             <ul id="given"></ul>
         </div>
         <div id="inputs-wrapper">
             <ol id="inputs" class="expn-list"></ol>
         </div>
         <div id="error"></div>
-        <!-- <div id="win">&nbsp;</div> -->
+        <div id="win">
+            <p id="win-message">Congratulations!</p>
+            <button id="button-copy-results">Copy results</button>
+        </div>
         <div id="keyboard">
             <!--
             <button data-type="digit" data-digit="1">1</button>
             -->
-            <button id="button-reset">🔄︎</button>
 
             <button data-type="operator" data-op="+">+</button>
             <button data-type="operator" data-op="-">−</button>
             <button data-type="operator" data-op="*">×</button>
             <button data-type="operator" data-op="/">÷</button>
-            <button id="button-submit">✓</button>
 
             <button data-type="erase">⌫</button>
             <button data-type="done">=</button>
+        </div>
+        <div id="puzzle-desc">
+            <p>Daily puzzle for 2022-02-04</p>
+            <!-- TODO
+            <button>New puzzle</button>
+            <button>Copy link</button>
+            -->
         </div>
     </main>
     <main hidden id="main-about">
