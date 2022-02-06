@@ -25,10 +25,11 @@ export class RNG {
         if (seed === undefined) {
             seed = Date.now();
         }
+        this.seed = seed;
+
         if (typeof seed !== 'number') {
             seed = xmur3(String(seed))();
         }
-        this.seed = seed;
         this.faucet = mulberry32(seed);
     }
 
@@ -417,6 +418,9 @@ class Expression {
 }
 
 const NBSP = "\xa0";
+const SEED_POOL = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const SEED_LENGTH = 8;
+
 export class UI {
     constructor(root) {
         this.root = root;
@@ -493,8 +497,16 @@ export class UI {
             }
         });
 
+        this.root.querySelector('#button-reroll').addEventListener('click', () => {
+            this.reroll();
+        });
         this.root.querySelector('#button-reset').addEventListener('click', () => {
             this.reset();
+        });
+        this.root.querySelector('#button-copy-link').addEventListener('click', ev => {
+            this.copy_link().then(() => {
+                this.confirm_copy(ev);
+            });
         });
 
         this.mode_button = this.root.querySelector('#button-mode');
@@ -527,8 +539,36 @@ export class UI {
             this.switch_to_tab('main-game');
         });
 
-        // Default to today's game
-        this.switch_to_daily_mode();
+        // Figure out what game we're playing.  If we have a seed in the URL, read that.
+        let seed;
+        if (location.hash) {
+            let params = new URLSearchParams(location.hash.substring(1));
+            seed = params.get('seed');
+            if (seed) {
+                let m = seed.match(/^(\d{4}-\d{2}-\d{2})(?:[/](\d+))?$/);
+                if (m) {
+                    this.daily_mode = true;
+                    // FIXME come on
+                    this.mode_button.textContent = "📆";
+                    this.mode_button.setAttribute('title', "Daily");
+                    this.daily_date = m[1];
+                    this.daily_number = m[2] ? parseInt(m[2], 10) : 1;
+                    console.log(seed, m, this.daily_date, this.daily_number);
+                }
+                else {
+                    this.daily_mode = false;
+                    this.mode_button.textContent = "🎲";
+                    this.mode_button.setAttribute('title', "Random");
+                }
+                this.set_game(new Game(new RNG(seed)));
+            }
+            history.replaceState({}, document.title, location.origin + location.pathname);
+        }
+
+        // Otherwise, default to today's game
+        if (! seed) {
+            this.switch_to_daily_mode();
+        }
     }
 
     switch_to_tab(id) {
@@ -538,15 +578,19 @@ export class UI {
         document.querySelector('#' + id).removeAttribute('hidden');
     }
 
+    get_datestamp() {
+        return new Date().toISOString().substring(0, 10);  // yyyy-mm-dd
+    }
+
     switch_to_daily_mode() {
         this.daily_mode = true;
         this.mode_button.textContent = "📆";
         this.mode_button.setAttribute('title', "Daily");
 
-        let date_seed = new Date().toISOString().substring(0, 10);  // yyyy-mm-dd
-        this.daily_date = date_seed;
+        this.daily_date = this.get_datestamp();
+        // FIXME switching back should remember what number you're on
         this.daily_number = 1;
-        this.set_game(new Game(new RNG(date_seed)));
+        this.generate_game();
     }
 
     switch_to_random_mode() {
@@ -554,7 +598,42 @@ export class UI {
         this.mode_button.textContent = "🎲";
         this.mode_button.setAttribute('title', "Random");
 
-        this.set_game(new Game);
+        this.generate_game();
+    }
+
+    reroll() {
+        if (this.daily_mode) {
+            let stamp = this.get_datestamp();
+            if (stamp === this.daily_date) {
+                this.daily_number += 1;
+            }
+            else {
+                this.daily_date = stamp;
+                this.daily_number = 1;
+            }
+        }
+
+        this.generate_game();
+    }
+
+    generate_game() {
+        let seed;
+        if (this.daily_mode) {
+            seed = this.daily_date;
+            if (this.daily_number > 1) {
+                seed += `/${this.daily_number}`;
+            }
+        }
+        else {
+            // Generate a random seed from [a-zA-Z0-9], eight chars long
+            let chars = [];
+            for (let i = 0; i < SEED_LENGTH; i++) {
+                chars.push(SEED_POOL[Math.floor(Math.random() * SEED_POOL.length)]);
+            }
+            seed = chars.join('');
+        }
+
+        this.set_game(new Game(new RNG(seed)));
     }
 
     set_game(game) {
@@ -562,6 +641,19 @@ export class UI {
         this.target_el.textContent = this.game.target;
         for (let [i, n] of this.game.numbers.entries()) {
             this.number_els[i].textContent = n;
+        }
+
+        let p = this.root.querySelector('#puzzle-desc p');
+        if (this.daily_mode) {
+            let bits = ["Daily puzzle"];
+            if (this.daily_number > 1) {
+                bits.push(" #", this.daily_number);
+            }
+            bits.push(" for ", this.daily_date);
+            p.textContent = bits.join("");
+        }
+        else {
+            p.textContent = `Random puzzle ${this.game.rng.seed}`;
         }
 
         this.reset();
@@ -708,6 +800,16 @@ export class UI {
         this.update_ui();
     }
 
+    copy_link() {
+        // Rebuild this without any query or fragment
+        let base_url = location.origin + location.pathname;
+
+        // Construct the fragment
+        let params = new URLSearchParams([['seed', this.game.rng.seed]]);
+
+        return navigator.clipboard.writeText(base_url + '#' + params.toString());
+    }
+
     copy_results() {
         if (! this.game.win)
             return;
@@ -716,11 +818,13 @@ export class UI {
 
         if (this.daily_mode) {
             text.push(`daily digitle ${this.daily_date}`);
-            // TODO this.daily_number = 1;
+            if (this.daily_number > 1) {
+                text.push(' #', this.daily_number);
+            }
         }
         else {
-            // TODO
-            text.push(`random digitle`);
+            text.push(`random digitle `);
+            text.push(this.game.rng.seed);
         }
         text.push("\n");
 

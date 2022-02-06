@@ -281,6 +281,8 @@
 
         #puzzle-desc {
             display: flex;
+            align-items: center;
+            gap: 0.5em;
             color: #666;
         }
         #puzzle-desc p {
@@ -374,7 +376,6 @@
         </header>
         <div id="board">
             <div class="-left">
-                <button id="button-reroll">new</button>
                 <button id="button-reset">reset</button>
             </div>
             <div class="num target">???</div>
@@ -404,10 +405,8 @@
         </div>
         <div id="puzzle-desc">
             <p>Daily puzzle for 2022-02-04</p>
-            <!-- TODO
-            <button>New puzzle</button>
-            <button>Copy link</button>
-            -->
+            <button id="button-reroll">New puzzle</button>
+            <button id="button-copy-link">Copy link</button>
         </div>
     </main>
     <main hidden id="main-about">
