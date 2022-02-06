@@ -670,6 +670,7 @@ export class UI {
         this.game.reset();
 
         this.root.classList.remove('won');
+        this.error_el.textContent = '';
         this.expns_el.textContent = '';
         this.expressions = [];
         this.add_new_expression();
@@ -892,3 +893,4 @@ export class UI {
 // - fragment trick
 // - limit intermediate results to 5 digits
 // - hide last expression and ignore input when only one number is left
+// - give this an embed and a favicon i guess
