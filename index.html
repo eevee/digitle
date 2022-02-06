@@ -244,9 +244,9 @@
         }
 
         #keyboard {
-            font-size: 1.5em;
+            font-size: 2em;
             display: grid;
-            grid: auto-flow 1.5em / 2fr 2fr 2fr 2fr;
+            grid: auto-flow 1.5em / repeat(6, 1fr);
             gap: 0.25em;
         }
         #keyboard button {
@@ -254,13 +254,9 @@
             line-height: 1;
         }
         #keyboard button[data-type=erase] {
-            grid-column: 1;
-            grid-row: 1 / span 2;
             --button-hue: 275;
         }
         #keyboard button[data-type=done] {
-            grid-column: 4;
-            grid-row: 1 / span 2;
             --button-hue: 155;
         }
 
@@ -421,16 +417,11 @@
             <button id="button-copy-results">Copy results</button>
         </div>
         <div id="keyboard">
-            <!--
-            <button data-type="digit" data-digit="1">1</button>
-            -->
-
+            <button data-type="erase">⌫</button>
             <button data-type="operator" data-op="+">+</button>
             <button data-type="operator" data-op="-">−</button>
             <button data-type="operator" data-op="*">×</button>
             <button data-type="operator" data-op="/">÷</button>
-
-            <button data-type="erase">⌫</button>
             <button data-type="done">=</button>
         </div>
         <div id="puzzle-desc">
