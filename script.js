@@ -166,22 +166,22 @@ export class Game {
 const OPERATORS = {
     '+': {
         text: '+',
-        emoji: '➕',
+        emoji: '▫️',
         evaluate: (a, b) => a + b,
     },
     '-': {
         text: '−',
-        emoji: '➖',
+        emoji: '▫️',
         evaluate: (a, b) => a - b,
     },
     '*': {
         text: '×',
-        emoji: '✖️',
+        emoji: '▫️',
         evaluate: (a, b) => a * b,
     },
     '/': {
         text: '÷',
-        emoji: '➗',
+        emoji: '▫️',
         evaluate: (a, b) => a / b,
     },
 };
